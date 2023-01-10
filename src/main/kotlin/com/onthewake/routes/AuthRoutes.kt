@@ -100,18 +100,16 @@ fun Route.authenticate() {
 fun Route.checkIfUserAlreadyExists(
     userDataSource: UserDataSource
 ) {
-    get("/checkIfUserAlreadyExists") {
+    get("/isUserAlreadyExists") {
         val phoneNumber = call.request.queryParameters["phoneNumber"] ?: kotlin.run {
             call.respond(HttpStatusCode.BadRequest)
             return@get
         }
-        val userWithThisPhoneNumberAlreadyExists = userDataSource.getUserByPhoneNumber(phoneNumber)
-        if (userWithThisPhoneNumberAlreadyExists != null) {
-            call.respond(
-                HttpStatusCode.Conflict, "User with this phone number already exists"
-            )
+        val isUserAlreadyExists = userDataSource.getUserByPhoneNumber(phoneNumber)
+        if (isUserAlreadyExists != null) {
+            call.respond(HttpStatusCode.OK, true)
             return@get
-        } else call.respond(HttpStatusCode.OK)
+        } else call.respond(HttpStatusCode.OK, false)
     }
 }
 

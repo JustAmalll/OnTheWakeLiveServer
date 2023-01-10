@@ -2,10 +2,10 @@ package com.onthewake.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.onthewake.routes.userId
 import com.onthewake.security.token.TokenConfig
 import com.onthewake.sessions.QueueSession
 import io.ktor.server.application.*
+import io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.sessions.*
@@ -17,10 +17,9 @@ fun Application.configureSecurity(config: TokenConfig) {
         cookie<QueueSession>("SESSION")
     }
 
-    intercept(ApplicationCallPipeline.Features) {
+    intercept(Plugins) {
         if (call.sessions.get<QueueSession>() == null) {
-            val firstName = call.parameters["firstName"] ?: "Guest"
-            call.sessions.set(QueueSession(firstName, generateNonce()))
+            call.sessions.set(QueueSession(generateNonce()))
         }
     }
 

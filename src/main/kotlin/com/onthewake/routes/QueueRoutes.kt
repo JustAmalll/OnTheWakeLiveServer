@@ -29,7 +29,6 @@ fun Route.queueSocket(roomController: RoomController, userDataSource: UserDataSo
             }
             try {
                 roomController.onJoin(
-                    firstName = session.firstName,
                     sessionId = session.sessionId,
                     socket = this
                 )
@@ -37,19 +36,17 @@ fun Route.queueSocket(roomController: RoomController, userDataSource: UserDataSo
                 incoming.consumeEach { frame ->
                     if (frame is Frame.Text) {
                         val receivedText = frame.readText().split("/")
+                        println("add to queue $receivedText")
 
                         val user = userDataSource.getUserById(call.userId)
+                        println("call user id is ${call.userId}")
+                        println("add to queue user $user")
                         if (user == null) {
-                            call.respond(
-                                HttpStatusCode.NotFound,
-                                BasicApiResponse<Unit>(
-                                    successful = false,
-                                    message = "The user couldn't be found."
-                                )
-                            )
+                            println("add to queue user not found")
                             return@webSocket
                         }
 
+                        println("add to queue room controller")
                         roomController.addToQueue(
                             Queue(
                                 userId = call.userId,
@@ -66,7 +63,7 @@ fun Route.queueSocket(roomController: RoomController, userDataSource: UserDataSo
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                roomController.tryDisconnect(session.firstName)
+                roomController.tryDisconnect(session.sessionId)
             }
         }
     }

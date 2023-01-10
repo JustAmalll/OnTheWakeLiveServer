@@ -4,7 +4,7 @@ import com.onthewake.data.model.trick_list.TrickItem
 import com.onthewake.data.model.trick_list.TrickList
 import com.onthewake.data.trick_list.TrickListSource
 import com.onthewake.requests.TrickListRequest
-import com.onthewake.requests.toTrickItem
+import com.onthewake.responses.TrickListResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -438,13 +438,25 @@ fun Route.getUsersTrickList(
 
             val trickList = trickListSource.getUsersTrickList(userId)
             if (trickList == null) {
-                call.respond(HttpStatusCode.Conflict)
+                call.respond(HttpStatusCode.OK, TrickListResponse())
                 return@get
             }
 
+            val trickListResponse = TrickListResponse(
+                spins = trickList.spins,
+                raileyTricks = trickList.raileyTricks,
+                backRollTricks = trickList.backRollTricks,
+                frontFlipTricks = trickList.frontFlipTricks,
+                frontRollTricks = trickList.frontRollTricks,
+                tantrumTricks = trickList.tantrumTricks,
+                whipTricks = trickList.whipTricks,
+                grabs = trickList.grabs,
+                rails = trickList.rails
+            )
+
             call.respond(
                 status = HttpStatusCode.OK,
-                message = trickList
+                message = trickListResponse
             )
         }
     }
@@ -461,15 +473,15 @@ fun Route.addTrickList(
 
             val trickListRequest = TrickList(
                 userId = call.userId,
-                spins = request.spins.map { it.toTrickItem() },
-                raileyTricks = request.raileyTricks.map { it.toTrickItem() },
-                backRollTricks = request.backRollTricks.map { it.toTrickItem() },
-                frontFlipTricks = request.frontFlipTricks.map { it.toTrickItem() },
-                frontRollTricks = request.frontRollTricks.map { it.toTrickItem() },
-                tantrumTricks = request.tantrumTricks.map { it.toTrickItem() },
-                whipTricks = request.whipTricks.map { it.toTrickItem() },
-                grabs = request.grabs.map { it.toTrickItem() },
-                rails = request.rails.map { it.toTrickItem() }
+                spins = request.spins,
+                raileyTricks = request.raileyTricks,
+                backRollTricks = request.backRollTricks,
+                frontFlipTricks = request.frontFlipTricks,
+                frontRollTricks = request.frontRollTricks,
+                tantrumTricks = request.tantrumTricks,
+                whipTricks = request.whipTricks,
+                grabs = request.grabs,
+                rails = request.rails
             )
 
             val wasAcknowledged = if (trickList != null) {

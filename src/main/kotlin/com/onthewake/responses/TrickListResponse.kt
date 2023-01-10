@@ -1,9 +1,9 @@
-package com.onthewake.requests
+package com.onthewake.responses
 
 import com.onthewake.data.model.trick_list.TrickItem
 
 @kotlinx.serialization.Serializable
-data class TrickListRequest(
+data class TrickListResponse(
     val spins: List<TrickItem> = emptyList(),
     val raileyTricks: List<TrickItem> = emptyList(),
     val backRollTricks: List<TrickItem> = emptyList(),

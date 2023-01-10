@@ -16,12 +16,10 @@ class RoomController(
     private val members = ConcurrentHashMap<String, Member>()
 
     fun onJoin(
-        firstName: String,
         sessionId: String,
         socket: WebSocketSession
     ) {
-        members[firstName] = Member(
-            firstName = firstName,
+        members[sessionId] = Member(
             sessionId = sessionId,
             socket = socket
         )
@@ -39,16 +37,21 @@ class RoomController(
     suspend fun getQueueItemDetails(queueItemId: String): ProfileResponse? =
         queueDataSource.getQueueItemDetails(queueItemId)
 
-    suspend fun addToQueue(queue: Queue) {
+    suspend fun addToQueue(queueItem: Queue) {
 
-        queueDataSource.addToQueue(queue = queue)
+        val queue = getQueue()
+        val isUserAlreadyInQueue = queue.find { it.userId == queueItem.userId }
 
-        members.values.forEach { member ->
-            member.socket.send(
-                Frame.Text(
-                    Json.encodeToString(QueueResponse(isDeleteAction = false, queue = queue))
+        if (isUserAlreadyInQueue == null) {
+            queueDataSource.addToQueue(queue = queueItem)
+
+            members.values.forEach { member ->
+                member.socket.send(
+                    Frame.Text(
+                        Json.encodeToString(QueueResponse(isDeleteAction = false, queueItem = queueItem))
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -67,7 +70,7 @@ class RoomController(
                 Frame.Text(
                     Json.encodeToString(
                         deletedQueueItem?.let {
-                            QueueResponse(isDeleteAction = true, queue = it)
+                            QueueResponse(isDeleteAction = true, queueItem = it)
                         }
                     )
                 )
@@ -75,8 +78,8 @@ class RoomController(
         }
     }
 
-    suspend fun tryDisconnect(username: String) {
-        members[username]?.socket?.close()
-        if (members.containsKey(username)) members.remove(username)
+    suspend fun tryDisconnect(sessionId: String) {
+        members[sessionId]?.socket?.close()
+        if (members.containsKey(sessionId)) members.remove(sessionId)
     }
 }
